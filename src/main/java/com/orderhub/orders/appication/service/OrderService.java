@@ -1,11 +1,11 @@
 package com.orderhub.orders.appication.service;
 
-import aj.org.objectweb.asm.commons.TryCatchBlockSorter;
 import com.orderhub.orders.domain.exception.BadRquestException;
 import com.orderhub.orders.domain.exception.BusinessRuleException;
 import com.orderhub.orders.domain.exception.ResourceNotFoundException;
 import com.orderhub.orders.domain.model.Order;
 import com.orderhub.orders.domain.model.OrderStatus;
+import com.orderhub.orders.infrastructure.metrics.OrderMetrics;
 import com.orderhub.orders.infrastructure.persistence.entity.OrderEntity;
 import com.orderhub.orders.infrastructure.persistence.repository.OrderJpaRepository;
 import org.springframework.data.domain.Page;
@@ -20,9 +20,11 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderJpaRepository repository;
+    private final OrderMetrics metrics;
 
-    public OrderService(OrderJpaRepository repository) {
+    public OrderService(OrderJpaRepository repository, OrderMetrics metrics) {
         this.repository = repository;
+        this.metrics = metrics;
     }
 
     @Transactional
@@ -37,6 +39,7 @@ public class OrderService {
         );
 
         OrderEntity saved = repository.save(entity);
+        metrics.incrementCreated();
 
         return  new Order(
                 saved.getId(),
@@ -73,6 +76,7 @@ public class OrderService {
         entity.setStatus(OrderStatus.CANCELLED);
 
         OrderEntity saved = repository.save(entity);
+        metrics.incrementCancelled();
 
         return new Order(
                 saved.getId(),
