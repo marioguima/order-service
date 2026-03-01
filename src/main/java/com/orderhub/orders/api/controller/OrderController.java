@@ -2,15 +2,17 @@ package com.orderhub.orders.api.controller;
 
 import com.orderhub.orders.api.dto.CreateOrderRequest;
 import com.orderhub.orders.api.dto.OrderResponse;
+import com.orderhub.orders.api.dto.PageResponse;
 import com.orderhub.orders.appication.service.OrderService;
 import com.orderhub.orders.domain.model.Order;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.Calendar;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders")
@@ -74,5 +76,36 @@ public class OrderController {
                 cancelled.getStatus(),
                 cancelled.getCreatedAt()
         ));
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<OrderResponse>> list(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String status
+    ) {
+
+        Page<Order> result = service.list(page, size, status);
+
+        var content = result.getContent()
+                .stream()
+                .map(o -> new OrderResponse(
+                        o.getId(),
+                        o.getCustomerId(),
+                        o.getTotalAmount(),
+                        o.getStatus(),
+                        o.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+
+        PageResponse<OrderResponse> response = new PageResponse<>(
+                content,
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages()
+        );
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -6,6 +6,9 @@ import com.orderhub.orders.domain.model.Order;
 import com.orderhub.orders.domain.model.OrderStatus;
 import com.orderhub.orders.infrastructure.persistence.entity.OrderEntity;
 import com.orderhub.orders.infrastructure.persistence.repository.OrderJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,5 +79,30 @@ public class OrderService {
                 saved.getStatus(),
                 saved.getCreatedAt()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Order> list(Integer page, Integer size, String status) {
+
+        int pageNumber = (page == null) ? 0 : page;
+        int pageSize = (size == null) ? 10 : size;
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        Page<OrderEntity> result;
+
+        if (status == null || status.isBlank()) {
+            result = repository.findAll(pageable);
+        } else {
+            result = repository.findAllByStatus(OrderStatus.valueOf(status), pageable);
+        }
+
+        return result.map(e -> new Order(
+                e.getId(),
+                e.getCustomerId(),
+                e.getTotalAmount(),
+                e.getStatus(),
+                e.getCreatedAt()
+        ));
     }
 }
