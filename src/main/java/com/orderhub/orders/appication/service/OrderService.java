@@ -1,5 +1,7 @@
 package com.orderhub.orders.appication.service;
 
+import aj.org.objectweb.asm.commons.TryCatchBlockSorter;
+import com.orderhub.orders.domain.exception.BadRquestException;
 import com.orderhub.orders.domain.exception.BusinessRuleException;
 import com.orderhub.orders.domain.exception.ResourceNotFoundException;
 import com.orderhub.orders.domain.model.Order;
@@ -94,7 +96,12 @@ public class OrderService {
         if (status == null || status.isBlank()) {
             result = repository.findAll(pageable);
         } else {
-            result = repository.findAllByStatus(OrderStatus.valueOf(status), pageable);
+            try {
+                OrderStatus parsed = OrderStatus.valueOf(status.trim().toUpperCase());
+                result = repository.findAllByStatus(parsed, pageable);
+            } catch (IllegalArgumentException ex) {
+                throw new BadRquestException("Invalid status value: " + status);
+            }
         }
 
         return result.map(e -> new Order(

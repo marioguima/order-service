@@ -2,6 +2,7 @@ package com.orderhub.orders.api.handler;
 
 import com.orderhub.orders.api.dto.ApiError;
 import com.orderhub.orders.api.dto.FieldError;
+import com.orderhub.orders.domain.exception.BadRquestException;
 import com.orderhub.orders.domain.exception.BusinessRuleException;
 import com.orderhub.orders.domain.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,5 +63,18 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(BadRquestException.class)
+    public ResponseEntity<ApiError> handleBadRquest(BadRquestException ex, HttpServletRequest request) {
+
+        ApiError error = new ApiError(
+                "BAD_REQUEST",
+                ex.getMessage(),
+                Instant.now(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
