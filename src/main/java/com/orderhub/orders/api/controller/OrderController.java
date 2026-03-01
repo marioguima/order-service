@@ -1,5 +1,9 @@
 package com.orderhub.orders.api.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.orderhub.orders.api.dto.CreateOrderRequest;
 import com.orderhub.orders.api.dto.OrderResponse;
 import com.orderhub.orders.api.dto.PageResponse;
@@ -14,6 +18,8 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Tag(name = "Orders", description = "Order management endpoints")
+
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
@@ -24,6 +30,12 @@ public class OrderController {
         this.service = service;
     }
 
+    @Operation(summary = "Create a new order")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Created"),
+            @ApiResponse(responseCode = "400", description = "Validation error"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     @PostMapping
     public ResponseEntity<OrderResponse> create(@Valid @RequestBody CreateOrderRequest request) {
 
@@ -44,6 +56,12 @@ public class OrderController {
                 .body(response);
     }
 
+    @Operation(summary = "Get an order by id")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "404", description = "Order not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getById(@PathVariable UUID id) {
 
@@ -64,6 +82,13 @@ public class OrderController {
         );
     }
 
+    @Operation(summary = "Cancel an order")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "404", description = "Order not found"),
+            @ApiResponse(responseCode = "409", description = "Business rule violation"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     @PostMapping("/{id}/cancel")
     public ResponseEntity<OrderResponse> cancel(@PathVariable UUID id) {
 
@@ -78,6 +103,12 @@ public class OrderController {
         ));
     }
 
+    @Operation(summary = "List orders with pagination and optional status filter")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Invalid query param"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     @GetMapping
     public ResponseEntity<PageResponse<OrderResponse>> list(
             @RequestParam(required = false) Integer page,
