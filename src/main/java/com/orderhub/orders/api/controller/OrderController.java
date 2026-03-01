@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.Calendar;
 import java.util.UUID;
 
 @RestController
@@ -59,5 +60,19 @@ public class OrderController {
                         found.getCreatedAt()
                 )
         );
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<OrderResponse> cancel(@PathVariable UUID id) {
+
+        Order cancelled = service.cancel(id);
+
+        return ResponseEntity.ok(new OrderResponse(
+                cancelled.getId(),
+                cancelled.getCustomerId(),
+                cancelled.getTotalAmount(),
+                cancelled.getStatus(),
+                cancelled.getCreatedAt()
+        ));
     }
 }

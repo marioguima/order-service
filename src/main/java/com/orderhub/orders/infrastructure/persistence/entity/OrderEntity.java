@@ -56,4 +56,6 @@ public class OrderEntity {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    public void setStatus(OrderStatus status) { this.status = status; }
 }

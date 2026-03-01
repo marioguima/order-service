@@ -1,7 +1,9 @@
 package com.orderhub.orders.appication.service;
 
+import com.orderhub.orders.domain.exception.BusinessRuleException;
 import com.orderhub.orders.domain.exception.ResourceNotFoundException;
 import com.orderhub.orders.domain.model.Order;
+import com.orderhub.orders.domain.model.OrderStatus;
 import com.orderhub.orders.infrastructure.persistence.entity.OrderEntity;
 import com.orderhub.orders.infrastructure.persistence.repository.OrderJpaRepository;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,28 @@ public class OrderService {
                 entity.getTotalAmount(),
                 entity.getStatus(),
                 entity.getCreatedAt()
+        );
+    }
+
+    @Transactional
+    public Order cancel(UUID id) {
+        OrderEntity entity = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + id));
+
+        if (entity.getStatus() == OrderStatus.CANCELLED) {
+            throw new BusinessRuleException("Order already cancelled: " + id);
+        }
+
+        entity.setStatus(OrderStatus.CANCELLED);
+
+        OrderEntity saved = repository.save(entity);
+
+        return new Order(
+                saved.getId(),
+                saved.getCustomerId(),
+                saved.getTotalAmount(),
+                saved.getStatus(),
+                saved.getCreatedAt()
         );
     }
 }
