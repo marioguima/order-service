@@ -6,10 +6,14 @@ import com.orderhub.orders.domain.exception.BusinessRuleException;
 import com.orderhub.orders.domain.exception.ResourceNotFoundException;
 import com.orderhub.orders.domain.model.Order;
 import com.orderhub.orders.domain.model.OrderStatus;
+import com.orderhub.orders.infrastructure.external.PaymentResult;
+import com.orderhub.orders.infrastructure.external.PaymentService;
 import com.orderhub.orders.infrastructure.messaging.KafkaProducerService;
 import com.orderhub.orders.infrastructure.metrics.OrderMetrics;
 import com.orderhub.orders.infrastructure.persistence.entity.OrderEntity;
 import com.orderhub.orders.infrastructure.persistence.repository.OrderJpaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,15 +25,22 @@ import java.util.UUID;
 @Service
 public class OrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+
     private final OrderJpaRepository repository;
     private final OrderMetrics metrics;
 
     private final KafkaProducerService kafkaProducerService;
+    private final PaymentService paymentService;
 
-    public OrderService(OrderJpaRepository repository, OrderMetrics metrics, KafkaProducerService kafkaProducerService) {
+    public OrderService(OrderJpaRepository repository,
+                        OrderMetrics metrics,
+                        KafkaProducerService kafkaProducerService,
+                        PaymentService paymentService) {
         this.repository = repository;
         this.metrics = metrics;
         this.kafkaProducerService = kafkaProducerService;
+        this.paymentService = paymentService;
     }
 
     @Transactional
@@ -53,6 +64,13 @@ public class OrderService {
                 saved.getStatus(),
                 saved.getCreatedAt()
         );
+
+        PaymentResult paymentResult = paymentService.processPayment(
+                createdOrder.getId(),
+                createdOrder.getTotalAmount()
+        );
+        log.info("Payment result: status={}, transactionId={}",
+                paymentResult.status(), paymentResult.transactionId());
 
         OrderCreatedEvent event = new OrderCreatedEvent(
                 createdOrder.getId(),

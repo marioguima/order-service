@@ -4,6 +4,7 @@ import com.orderhub.orders.domain.exception.BusinessRuleException;
 import com.orderhub.orders.domain.exception.ResourceNotFoundException;
 import com.orderhub.orders.domain.model.Order;
 import com.orderhub.orders.domain.model.OrderStatus;
+import com.orderhub.orders.infrastructure.external.PaymentService;
 import com.orderhub.orders.infrastructure.messaging.KafkaProducerService;
 import com.orderhub.orders.infrastructure.metrics.OrderMetrics;
 import com.orderhub.orders.infrastructure.persistence.entity.OrderEntity;
@@ -25,13 +26,15 @@ class OrderServiceTest {
     private OrderMetrics metrics;
     private OrderService service;
     private KafkaProducerService kafkaProducerService;
+    private PaymentService paymentService;
 
     @BeforeEach
     void setup() {
         repository = mock(OrderJpaRepository.class);
         metrics = mock(OrderMetrics.class);
         kafkaProducerService = mock(KafkaProducerService.class);
-        service = new OrderService(repository, metrics, kafkaProducerService);
+        paymentService = mock(PaymentService.class);
+        service = new OrderService(repository, metrics, kafkaProducerService, paymentService);
     }
 
     @Test
