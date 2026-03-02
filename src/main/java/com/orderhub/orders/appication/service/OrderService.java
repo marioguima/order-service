@@ -1,10 +1,12 @@
 package com.orderhub.orders.appication.service;
 
+import com.orderhub.orders.domain.event.OrderCreatedEvent;
 import com.orderhub.orders.domain.exception.BadRquestException;
 import com.orderhub.orders.domain.exception.BusinessRuleException;
 import com.orderhub.orders.domain.exception.ResourceNotFoundException;
 import com.orderhub.orders.domain.model.Order;
 import com.orderhub.orders.domain.model.OrderStatus;
+import com.orderhub.orders.infrastructure.messaging.KafkaProducerService;
 import com.orderhub.orders.infrastructure.metrics.OrderMetrics;
 import com.orderhub.orders.infrastructure.persistence.entity.OrderEntity;
 import com.orderhub.orders.infrastructure.persistence.repository.OrderJpaRepository;
@@ -22,9 +24,12 @@ public class OrderService {
     private final OrderJpaRepository repository;
     private final OrderMetrics metrics;
 
-    public OrderService(OrderJpaRepository repository, OrderMetrics metrics) {
+    private final KafkaProducerService kafkaProducerService;
+
+    public OrderService(OrderJpaRepository repository, OrderMetrics metrics, KafkaProducerService kafkaProducerService) {
         this.repository = repository;
         this.metrics = metrics;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     @Transactional
@@ -41,13 +46,24 @@ public class OrderService {
         OrderEntity saved = repository.save(entity);
         metrics.incrementCreated();
 
-        return  new Order(
+        Order createdOrder = new Order(
                 saved.getId(),
                 saved.getCustomerId(),
                 saved.getTotalAmount(),
                 saved.getStatus(),
                 saved.getCreatedAt()
         );
+
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                createdOrder.getId(),
+                createdOrder.getCustomerId(),
+                createdOrder.getTotalAmount(),
+                createdOrder.getCreatedAt()
+        );
+        kafkaProducerService.sendOrderCreatedEvent(event);
+
+        return createdOrder;
+
     }
 
     @Transactional(readOnly = true)
