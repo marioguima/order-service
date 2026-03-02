@@ -1,30 +1,30 @@
 package com.orderhub.orders.api.controller;
 
-        import com.fasterxml.jackson.databind.ObjectMapper;
-        import com.orderhub.orders.appication.service.OrderService;
-        import com.orderhub.orders.domain.exception.BusinessRuleException;
-        import com.orderhub.orders.domain.exception.ResourceNotFoundException;
-        import com.orderhub.orders.domain.model.Order;
-        import com.orderhub.orders.domain.model.OrderStatus;
-        import org.junit.jupiter.api.Test;
-        import org.springframework.beans.factory.annotation.Autowired;
-        import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-        import org.springframework.boot.test.context.SpringBootTest;
-        import org.springframework.test.context.bean.override.mockito.MockitoBean;
-        import org.springframework.http.MediaType;
-        import org.springframework.test.web.servlet.MockMvc;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.orderhub.orders.appication.service.OrderService;
+import com.orderhub.orders.domain.exception.BusinessRuleException;
+import com.orderhub.orders.domain.exception.ResourceNotFoundException;
+import com.orderhub.orders.domain.model.Order;
+import com.orderhub.orders.domain.model.OrderStatus;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
-        import java.math.BigDecimal;
-        import java.time.Instant;
-        import java.util.UUID;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
 
-        import static org.mockito.ArgumentMatchers.any;
-        import static org.mockito.Mockito.when;
-        import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-        import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 class OrderControllerIT {
 
     @Autowired
